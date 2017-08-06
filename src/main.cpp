@@ -135,8 +135,8 @@ int main() {
                     // calculate
                     optSolution optSol = mpc.Solve(state, coeffs);
                     
-                    double steer_value = optSol.delta.at(2);
-                    double throttle_value = optSol.a.at(2);
+                    double steer_value = optSol.delta.at(4);
+                    double throttle_value = optSol.a.at(4);
                     
                     json msgJson;
                     // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
