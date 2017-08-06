@@ -6,15 +6,26 @@
 
 using namespace std;
 
+
+
+//int latency_idx = (int) (0.1/dt);
+
+struct optSolution {
+    vector<double> x;
+    vector<double> y;
+    vector<double> delta;
+    vector<double> a;
+};
+
 class MPC {
- public:
-  MPC();
-
-  virtual ~MPC();
-
-  // Solve the model given an initial state and polynomial coefficients.
-  // Return the first actuatotions.
-  vector<double> Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs);
+public:
+    MPC();
+    
+    virtual ~MPC();
+    
+    // Solve the model given an initial state and polynomial coefficients.
+    // Return the first actuatotions.
+    optSolution Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs);
 };
 
 #endif /* MPC_H */
