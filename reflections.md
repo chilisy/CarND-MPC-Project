@@ -23,7 +23,7 @@ $$e\psi_{t+1} = \psi_t - \psi des_t + v_t \frac{\delta_t}{L_f} dt$$
 
 ## Parameters Timestemp Length $N$ and Elapsed Duration $dt$
 
-The parameter timestemp length $N$ and elapsed duration $dt§ determine together the prediction horizon of the model $N \cdot dt$. A longer prediction horizon smoother, a shorter prediction horizon reacts faster. I've chosen $N = 24$ and $dt = 25ms$ for this task, since this seems to balance the reaction time and the smoothiness of the controller. 
+The parameter timestemp length $N$ and elapsed duration $dt§ determine together the prediction horizon of the model $N \cdot dt$. A longer prediction horizon smoother, a shorter prediction horizon reacts faster. I've chosen $N = 15$ and $dt = 50ms$ for this task, since this seems to balance the reaction time and the smoothiness of the controller. 
 
 ## Polynomial Fitting and MPC Preprocessing
 Before the solving of MPC optimizer, the waypoints are transformed to car coordinate system with translation and rotation:  
@@ -35,5 +35,14 @@ After transformation, the waypoints are given in car coordinate system, which me
 
 
 ## Model Predictive Control with Latency
-If a latency of 100 ms is simulated and the MPC-controller don't that into account, it will result instable oscilations and the car drives off the track. In order to prevent that, the actuation after the latency should be applied before the latency took place. This is done by using the 4th actuation of the MPC-controller since $dt=25ms$. 
+If a latency of 100 ms is simulated and the MPC-controller don't that into account, it will result instable oscilations and the car drives off the track. In order to prevent that, the actuation after the latency should be applied before the latency took place. This is done by using the 2nd actuation of the MPC-controller since $dt=50ms$. 
 
+This approach requires that actuation values prior to latency index should be set to actuation value of previous step, otherwise the effective of the steering of MPC model would be {0, 0, 0,...value of latency_idx} and different to the optimum path predicted by MPC model. The fixing (MPC.cpp, line 201-206 and 215-220) are implemented as follows:
+```{c}
+// steering value prior to latency should be fixed at last steering input
+for (int i=delta_start; i<delta_start+latency_idx; i++)
+{
+  vars_lowerbound[i] = last_ste;
+  vars_upperbound[i] = last_ste;
+}
+```

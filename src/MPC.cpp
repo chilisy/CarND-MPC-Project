@@ -198,6 +198,7 @@ optSolution MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
         vars_upperbound[i] = 0.436332;
     }
     
+    // steering value prior to latency should be fixed at last steering input
     for (int i=delta_start; i<delta_start+latency_idx; i++)
     {
         vars_lowerbound[i] = last_ste;
@@ -211,6 +212,7 @@ optSolution MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
         vars_upperbound[i] = 1.0;
     }
     
+    // acceleration prior to latency should be fixed at last acceleration input
     for (int i=a_start; i<a_start+latency_idx; i++)
     {
         vars_lowerbound[i] = last_acc;
