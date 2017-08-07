@@ -6,8 +6,8 @@
 using CppAD::AD;
 
 // TODO: Set the timestep length and duration
-size_t N = 24;
-double dt = 0.025; // should be chosen to dividable by 0.1
+size_t N = 15;
+double dt = 0.05; // should be chosen to dividable by 0.1
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -21,7 +21,7 @@ double dt = 0.025; // should be chosen to dividable by 0.1
 // This is the length from front to CoG that has a similar radius.
 const double Lf = 2.67;
 
-double ref_v = 60;
+double ref_v = 80;
 
 // The solver takes all the state variables and actuator
 // variables in a singular vector. Thus, we should to establish
@@ -135,7 +135,12 @@ public:
 //
 // MPC class definition implementation.
 //
-MPC::MPC() {}
+MPC::MPC()
+{
+    latency_idx = (int) (0.1/dt);
+    last_acc = 0.0;
+    last_ste = 0.0;
+}
 MPC::~MPC() {}
 
 optSolution MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
@@ -193,11 +198,23 @@ optSolution MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
         vars_upperbound[i] = 0.436332;
     }
     
+    for (int i=delta_start; i<delta_start+latency_idx; i++)
+    {
+        vars_lowerbound[i] = last_ste;
+        vars_upperbound[i] = last_ste;
+    }
+    
     // Acceleration/decceleration upper and lower limits.
     // NOTE: Feel free to change this to something else.
     for (int i = a_start; i < n_vars; i++) {
         vars_lowerbound[i] = -1.0;
         vars_upperbound[i] = 1.0;
+    }
+    
+    for (int i=a_start; i<a_start+latency_idx; i++)
+    {
+        vars_lowerbound[i] = last_acc;
+        vars_upperbound[i] = last_acc;
     }
     
     
@@ -262,6 +279,9 @@ optSolution MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     
     // TODO: Return the first actuator values. The variables can be accessed with
     // `solution.x[i]`.
+    
+    last_ste = solution.x[delta_start+latency_idx];
+    last_acc = solution.x[a_start+latency_idx];
     
     optSolution optSol;
     

@@ -23,6 +23,9 @@ public:
     
     virtual ~MPC();
     
+    int latency_idx;
+    double last_ste;
+    double last_acc;
     // Solve the model given an initial state and polynomial coefficients.
     // Return the first actuatotions.
     optSolution Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs);

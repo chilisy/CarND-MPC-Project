@@ -16,6 +16,7 @@ using json = nlohmann::json;
 constexpr double pi() { return M_PI; }
 double deg2rad(double x) { return x * pi() / 180; }
 double rad2deg(double x) { return x * 180 / pi(); }
+const double Lf = 2.67;
 
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
@@ -101,11 +102,21 @@ int main() {
                     double py = j[1]["y"];
                     double psi = j[1]["psi"];
                     double v = j[1]["speed"];
+                    double ste = j[1]["steering_angle"];
+                    double acc = j[1]["throttle"];
                     
                     // coordinate transformation to car coordinate system
                     //Display the waypoints/reference line
                     vector<double> next_x_vals(ptsx.size());
                     vector<double> next_y_vals(ptsy.size());
+                    
+                    /*
+                    double latency_time = 0.1; //s
+                    px += v*std::cos(psi) * latency_time;
+                    py += v*std::sin(psi) * latency_time;
+                    psi += v * (-ste*deg2rad(25))/Lf * latency_time;
+                    v += acc*latency_time;
+                    */
                     
                     transform2CarCoord(next_x_vals, next_y_vals,px, py, psi, ptsx, ptsy);
                     
@@ -135,8 +146,8 @@ int main() {
                     // calculate
                     optSolution optSol = mpc.Solve(state, coeffs);
                     
-                    double steer_value = optSol.delta.at(4);
-                    double throttle_value = optSol.a.at(4);
+                    double steer_value = optSol.delta.at(mpc.latency_idx);
+                    double throttle_value = optSol.a.at(mpc.latency_idx);
                     
                     json msgJson;
                     // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
